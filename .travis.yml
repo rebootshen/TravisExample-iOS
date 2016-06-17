@@ -1,1 +1,29 @@
 language: objective-c
+cache: bundler
+before_script:
+  - openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/profile/TravisExample_Ad_Hoc.mobileprovision.enc -d -a -out scripts/profile/TravisExample_Ad_Hoc.mobileprovision
+  - openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/certs/dist.cer.enc -d -a -out scripts/certs/dist.cer
+  - openssl aes-256-cbc -k "$ENCRYPTION_SECRET" -in scripts/certs/dist.p12.enc -d -a -out scripts/certs/dist.p12
+  - ./scripts/add-key.sh
+  - ./scripts/update-bundle.sh
+script:
+  - xctool -workspace TravisExample.xcworkspace -scheme TravisExample -sdk iphoneos -configuration Release OBJROOT=$PWD/build SYMROOT=$PWD/build ONLY_ACTIVE_ARCH=NO TESTFLIGHT_APP_TOKEN=$TESTFLIGHT_APP_TOKEN HOCKEY_APP_ID=$HOCKEY_APP_ID
+  - xctool test -workspace TravisExample.xcworkspace -scheme TravisExampleTests -sdk iphonesimulator ONLY_ACTIVE_ARCH=NO
+after_script:
+  - ./scripts/remove-key.sh
+after_success:
+  - ./scripts/sign-and-upload.sh
+env:
+  global:
+  - APP_NAME="TravisExample"
+  - 'DEVELOPER_NAME="iPhone Distribution: Mattes Groeger"'
+  - PROFILE_NAME="TravisExample_Ad_Hoc"
+  - INFO_PLIST="TravisExample/TravisExample-Info.plist"
+  - BUNDLE_DISPLAY_NAME="Travis Example CI"
+  - secure: K4E2jjebY1fAZ07Ctq1R6lc1XwnJDX5VhkWOKUk7gPxycvGeMVqNrFM05wlfPE4/u9rS0Ot76bfO8lgjF1xvYNEaTxZJkYdCtFMGoFCEPzGqVDyVrv/7KnfCDjBpaewRterSMhPsjPFadsWh1mc6iurgl5kBvQBuFjrcMTffmKk=
+  - secure: p4nHmH+7GaTxzjpW/JdanC4MTUSJ8TlGS7tdiB7BW3cnI1IppbnQLAPDYZad8/cs/BzFTHXEEw/DKx9On/68mbZvcKIMSY69HWlE2UKYjgGS02AXN88CB6CdlytL+D8PyBrrobwVakF+hnBmdyETn4/BK6116tMU/yPrUXXaOH8=
+  - secure: UzZowvCJ4jhm+E+9NF8OpVB/FYYor42luNMaFNrstUYITpnvqTMbDvcqQdRaJvsKjYzf1jb+GRfAgRTc4mCP794e3+WnnxobwVwPj5sNf3SaYw4ZXN4RezsOHMdG7lH/S+fzDMM30zBLjuC5ETkJ4ggUHJvmk7SJ0ngxiXIEwPQ=
+  - secure: gGkaZt1qQCnetmPoJc39dcusdOVEEMJOZVFJ+TD3dsdWRUVYEoHdIBRTLdcHfHf6bGQxG6BLUbLT/iDamxmyD0dn1B24f5IPPFo9rzG58KGgu3aSZrcuN/IsapLLdlH2HevjPSajvzquuaeFtZWbmLzPgyiYTFgIQH8weUd0s5A=
+  - secure: oAfVP68DL50uzPKXCQ4arEThqkbK6KMnEZoMtIqEz6GtZ51OV7th4nyiACkuLA9JvDk+tWZDTqwOyV67RbnxTeFTkohYasNgFL8lI0wUHKMGsc48YYFNnozqcHVNy/7P/qXAW0t7VSyupJo5d3o54HWYfgVoep7ywYgq2fJaLpQ=
+  - secure: aWylZiHXUb4sLpXl5PNeH+DESmLdsBmovpTylUyMhrowzx0DhnTuEG+k7+abzm6G5Ox+jqaJCm7BXHrqbhtn/80mJu6Oe9D26EY6253Arf8CiSxncMe7cJMeUj8VzCEvV7p2vHP03rJBf15ADGrP3pq00YxmM/Xug24h4tDyNUM=
+  - secure: QrWW1YFOks3I7xvIs13tCVRXEy7mIsNUEnqaiqNcf3jBva3DNBciKXNcE941jR28zVRqBku5rcv0GCx7JA4dj/xklwLcVbRi8miJWvCvP/bRymkQOFbkexm77yBIg016BpxlTMba/CEo93aJwkF5DYaJDrD9ZgwJX1/LBSgZaAc=
